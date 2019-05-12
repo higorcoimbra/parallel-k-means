@@ -16,7 +16,14 @@ class Point{
         y = _y;
     }
 
+    Point(){
+        x = 0;
+        y = 0;
+    }
+
     void setCluster(int _cluster){cluster = _cluster;}
+    void setX(float _x){x = _x;}
+    void setY(float _y){y = _y;}
 
     float getX(){return x;}
     float getY(){return y;}
@@ -30,11 +37,13 @@ float calc_euclidean_distance(Point p1, Point p2){
 int main(){
     //initial variables
     float random_coord_x, random_coord_y, space_limit = 100.0, dist_to_cluster;
-    vector<Point> random_points, clusters;
-    int random_pos, n_clusters = 5, n_points = 500, n_iterations = 1, chosen_cluster;
+    vector<Point> random_points, clusters_centers;
+    vector<vector<Point>> clusters;
+    Point mean;
+    int random_pos, n_clusters = 5, n_points = 500, n_iterations = 500, chosen_cluster;
 
     //initialize random seed
-    srand(time(NULL));
+    // srand(time(NULL));
 
     //initialize random points in 2d space
     for(int i = 0;i < n_points;i++){
@@ -43,10 +52,13 @@ int main(){
         random_points.push_back(Point(random_coord_x, random_coord_y));
     }
 
-    //set initial clusters
+    //initialize clusters sets
+    clusters.resize(n_clusters);
+
+    //set initial clusters centers
     for(int i = 0; i < n_clusters; i++){
         random_pos = rand() % n_points;
-        clusters.push_back(random_points[random_pos]);
+        clusters_centers.push_back(random_points[random_pos]);
     }
 
     //main loop
@@ -55,14 +67,34 @@ int main(){
         for(int j = 0; j < n_points; j++){
             dist_to_cluster = INT_MAX;
             for(int k = 0; k < n_clusters; k++){
-                if(dist_to_cluster > calc_euclidean_distance(random_points[j], clusters[k])){
+                if(dist_to_cluster > calc_euclidean_distance(random_points[j], clusters_centers[k])){
                     chosen_cluster = k;
-                    dist_to_cluster = calc_euclidean_distance(random_points[j], clusters[k]);
+                    clusters[chosen_cluster].push_back(random_points[j]);
+                    dist_to_cluster = calc_euclidean_distance(random_points[j], clusters_centers[k]);
                 }
             }
             random_points[j].setCluster(chosen_cluster);
         }
 
         //calculate means
+        for(int j = 0; j < n_clusters;j++){
+            //start mean as equal to 0
+            mean.setX(0), mean.setY(0);
+            //accumulate X and Y coordinates
+            for(int k = 0; k < clusters[j].size();k++){
+                mean.setX(mean.getX() + clusters[j][k].getX());
+                mean.setY(mean.getY() + clusters[j][k].getY());
+            }
+            //calculate mean coordinates based on cluster size
+            mean.setX(mean.getX()/clusters[j].size());
+            mean.setY(mean.getY()/clusters[j].size());
+
+            //set new cluster center j as mean coordinate j
+            clusters_centers[j] = mean;
+        }
+
+        for(int j = 0; j < n_clusters; j++){
+            cout << clusters_centers[j].getX() << " - " << clusters_centers[j].getY() << endl;
+        }
     }
 }
