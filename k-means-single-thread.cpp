@@ -1,6 +1,9 @@
 #include <bits/stdc++.h>
+#include "matplotlibcpp.h"
 
 using namespace std;
+
+namespace plt = matplotlibcpp;
 
 class Point{
     private:
