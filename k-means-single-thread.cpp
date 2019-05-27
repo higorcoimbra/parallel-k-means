@@ -2,7 +2,6 @@
 #include "matplotlibcpp.h"
 
 using namespace std;
-
 namespace plt = matplotlibcpp;
 
 class Point{
@@ -42,11 +41,12 @@ int main(){
     float random_coord_x, random_coord_y, space_limit = 100.0, dist_to_cluster;
     vector<Point> random_points, clusters_centers;
     vector<vector<Point>> clusters;
+    vector<int> x_points, y_points;
     Point mean;
-    int random_pos, n_clusters = 5, n_points = 500, n_iterations = 500, chosen_cluster;
+    int random_pos, n_clusters = 4, n_points = 100, n_iterations = 10, chosen_cluster;
 
     //initialize random seed
-    // srand(time(NULL));
+    srand(time(NULL));
 
     //initialize random points in 2d space
     for(int i = 0;i < n_points;i++){
@@ -72,10 +72,10 @@ int main(){
             for(int k = 0; k < n_clusters; k++){
                 if(dist_to_cluster > calc_euclidean_distance(random_points[j], clusters_centers[k])){
                     chosen_cluster = k;
-                    clusters[chosen_cluster].push_back(random_points[j]);
                     dist_to_cluster = calc_euclidean_distance(random_points[j], clusters_centers[k]);
                 }
             }
+            clusters[chosen_cluster].push_back(random_points[j]);
             random_points[j].setCluster(chosen_cluster);
         }
 
@@ -84,14 +84,18 @@ int main(){
             //start mean as equal to 0
             mean.setX(0), mean.setY(0);
             //accumulate X and Y coordinates
-            for(int k = 0; k < clusters[j].size();k++){
+             for(int k = 0; k < clusters[j].size();k++){
                 mean.setX(mean.getX() + clusters[j][k].getX());
                 mean.setY(mean.getY() + clusters[j][k].getY());
             }
             //calculate mean coordinates based on cluster size
-            mean.setX(mean.getX()/clusters[j].size());
-            mean.setY(mean.getY()/clusters[j].size());
-
+            if(clusters[j].size() != 0){
+                mean.setX(mean.getX()/clusters[j].size());
+                mean.setY(mean.getY()/clusters[j].size());
+            }else{
+                mean.setX(clusters_centers[j].getX());
+                mean.setY(clusters_centers[j].getY()); 
+            }
             //set new cluster center j as mean coordinate j
             clusters_centers[j] = mean;
         }
@@ -99,5 +103,22 @@ int main(){
         for(int j = 0; j < n_clusters; j++){
             cout << clusters_centers[j].getX() << " - " << clusters_centers[j].getY() << endl;
         }
+        cout << "END OF ITERATION\n" << i << endl;
+        //preparing points for plotting, %TODO: reorganizing this to a function
+        for(int j = 0; j < random_points.size(); j++){
+            x_points.push_back(random_points[j].getX());
+            y_points.push_back(random_points[j].getY());
+        }
+        plt::scatter(x_points, y_points);
+        x_points.clear();
+        y_points.clear();
+        //preparing cluster for plotting, %TODO: reorganizing this to a function
+        for(int j = 0; j < n_clusters; j++){
+            x_points.push_back(clusters_centers[j].getX());
+            y_points.push_back(clusters_centers[j].getY());
+        }
+        plt::scatter(x_points, y_points, 'o');
+        plt::pause(2);
     }
+    plt::show();
 }
