@@ -31,16 +31,20 @@ def set_atoms_distances(atoms_coordinates):
 
 protein_base_file = open('protein_base/protein_base.txt', 'r')
 formatted_protein_base_file = open('protein_base/formatted_protein_base.txt', 'w')
-atoms_coordinates = []
+formatted_protein_base_content = ''
 
 for aminoacid_pair in protein_base_file:
     string_coordinates_data = re.findall(r'-*[0-9]+\.[0-9]+', aminoacid_pair)
     
+    atoms_coordinates = []
     for i in range(0, AMONIOACID_PAIR_LEN, N_COORDINATES):
         atoms_coordinates.append((float(string_coordinates_data[i]), float(string_coordinates_data[i+1]), float(string_coordinates_data[i+2])))        
     
     for distance in set_atoms_distances(atoms_coordinates):
-        formatted_protein_base_file.write(str(distance) + ' ')
-    formatted_protein_base_file.write('\n')
+        formatted_protein_base_content += str(distance)
+        formatted_protein_base_content += ' '
+    formatted_protein_base_content += '\n'
     
     string_coordinates_data = []
+
+formatted_protein_base_file.write(formatted_protein_base_content)
