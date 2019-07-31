@@ -1,11 +1,9 @@
-def load_centroid():
-    centroid_file = open('centroids', 'r')
-    centroid_coordinates = []
-    str_centroid_coordinates = centroid_file.readline().split(' ')[:-1]
-    print(len(str_centroid_coordinates))
-    for coordinate in str_centroid_coordinates:
-        centroid_coordinates.append(float(coordinate))
-    return centroid_coordinates
+def load_centroids():
+    centroids_file = open('centroids', 'r')
+    centroids_coordinates = []
+    for str_centroid_coordinates in centroids_file:
+        centroids_coordinates.append(tuple(map(float, str_centroid_coordinates.split(' ')[:-1])))
+    return centroids_coordinates
 
 def load_points():
     points_file = open('protein_base/formatted_protein_base.txt', 'r')
@@ -26,10 +24,11 @@ def euclidean_distance(p1, centroid):
 def cost(centroid_coordinates, points):
     acc_cost = 0
     for point in points:
-        acc_cost += euclidean_distance(centroid_coordinates, points)
+        acc_cost += euclidean_distance(centroid_coordinates, point)
     
     return acc_cost
 
-centroid_coordinates = load_centroid()
-points = load_points()
+centroids_coordinates = load_centroids()
+print(centroids_coordinates)
+# points = load_points()
 
