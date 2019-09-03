@@ -4,7 +4,7 @@ DISTANCE_ARRAY_SIZE = 66
 
 def generate_columns_names():
 	n_atoms = 12
-	columns_names = []
+	columns_names = ['id']
 	for i in range(1, n_atoms):
 		for j in range(i+1, n_atoms+1):
 			columns_names.append(str(i) + '_' + str(j))
