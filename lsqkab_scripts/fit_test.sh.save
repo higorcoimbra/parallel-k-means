@@ -1,0 +1,11 @@
+lsqkab                        \
+XYZINM $PDB_TEST_DATABASE/11bg_CYS-26-B_CYS-84-B_mc6.pdb133l_CYS-65-A_CYS-81-A_mc6.pdb \
+XYZINF $CEXAM/rnase/rnase.pdb \
+XYZOUT $CCP4_SCR/rnase_fitted.pdb       \
+<< 'END-lsqkab' 
+title overall transformation from refinement
+FIT WATOM 1 TO 10000 
+MATCH 1 to  10000
+output  XYZ    
+end
+END-lsqkab
