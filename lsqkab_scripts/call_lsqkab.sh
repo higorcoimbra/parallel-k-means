@@ -1,6 +1,9 @@
 #! /bin/bash
 
+export START_CCP4_FILE_LOCATION=/home/higor/Documents/CCP4/ccp4-7.0
 export PDB_DATABASE=/home/higor/Documents/CEFET/TCC/parallel-k-means/protein_base/mc6
+
+./$START_CCP4_FILE_LOCATION/start
 
 moved_file=`cat $1 | egrep ^$2 | cut -d ' ' -f 2`
 fixed_file=`cat $1 | egrep ^$3 | cut -d ' ' -f 2`
