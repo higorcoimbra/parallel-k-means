@@ -22,3 +22,6 @@ OUTPUT DELTAS
 end
 END-lsqkab
 
+delta_file=`cat $DELTA_FILES_LOCATION/${moved_file}-${fixed_file}.delta | cut -d ' ' -f6`
+valid_superposition=`awk '$1>100{c++} END{print c+0}' $delta_file`
+echo $delta_file
