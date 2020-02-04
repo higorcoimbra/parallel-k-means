@@ -22,7 +22,7 @@ PDB files. The main steps for the methodology of this work are as follows:
 * Calculate atom by atom distance of the 16583 aminoacid-pair of the database;
 * Group all of the atom distance vectors using Matlab K-Means.
 * Using LSQKAB, calculate the metrics described in Introduction section. Basically, the quality of the formed clusters will be calculate 
-by superposing all of the aminoacid-pairs inside a cluster and retrieving their atom by atom distance after superposition.
+by superposing all of the aminoacid-pairs with each other inside a cluster and retrieving their atom by atom distance after superposition.
 * Repeating all steps above using K-Means++, generate same metrics as K-Means.
 * Compare the impact of a well-known initialization of K-Means on a Bioinformatics application.
 
