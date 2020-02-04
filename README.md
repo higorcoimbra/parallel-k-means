@@ -3,8 +3,8 @@
 ## INTRODUCTION
 
 This project aims to reproduce and improve the work done by Monteiro (2017) in his Master degree thesis. The main goal is to group similar
-aminoacid structures based on their atom by atom distances using the clustering algorithm K-Means. After that, compare Monteiro's metho-
-dology with K-Means++, a well known initialization algorithm for K-Means.
+aminoacid structures based on their atom by atom distances using the clustering algorithm K-Means. After that, compare Monteiro's methodology
+with K-Means++, a well known initialization algorithm for K-Means.
 
 The metrics for the descripted comparison are:
 
