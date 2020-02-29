@@ -1,13 +1,17 @@
-%constants util
+%constants
+%numeric
 number_of_files = 16383;
 number_of_clusters = 100;
 data_column_start = 2;
 data_column_finish = 67;
+number_of_atoms = 12;
+%text
+formatted_protein_base_format_spec = '%d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n';
+call_lsqkab_shell_command = "../lsqkab_scripts/call_lsqkab.sh ../lsqkab_scripts/map_file_id_to_file_name ";
 
 %read file
 fileID = fopen('../protein_base/formatted_protein_base.txt', 'r');
-formatSpec = '%d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n';
-distance_matrix = fscanf(fileID, formatSpec, [data_column_finish, number_of_files])';
+distance_matrix = fscanf(fileID, formatted_protein_base_format_spec, [data_column_finish, number_of_files])';
 fclose(fileID);
 
 %execute k-means
@@ -27,5 +31,30 @@ result_grouping = zeros(number_of_files, number_of_clusters);
 for i = 1:number_of_files
     result_grouping(i, map_file_id_to_cluster_id(i,2)) = map_file_id_to_cluster_id(i,1);  
 end
+
+for i = 1:1
+    result_column_i = result_grouping(:, i);
+    file_ids_of_cluster_i = result_column_i(result_column_i > 0);
+    number_of_files_cluster_i = size(file_ids_of_cluster_i, 1);
+    number_of_successfull_superpositions = 0;
+    
+    for j = number_of_files_cluster_i-1
+        for k = j+1:number_of_files_cluster_i
+            [~, cmdout] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k))]));
+            match_rms_criteria = str2double(cmdout);
+            [~, cmdout] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(k)), ' ', int2str(file_ids_of_cluster_i(j))]));
+            match_rms_criteria_inverted_arguments = str2double(cmdout);
+            number_of_successfull_superpositions = number_of_successfull_superpositions + (match_rms_criteria > number_of_atoms);
+            number_of_successfull_superpositions = number_of_successfull_superpositions + (match_rms_criteria_inverted_arguments > number_of_atoms);
+        end
+    end
+    
+    %succesfull_rms_rate = number_of_successfull_superpositions/((number_of_files_cluster_i)*(number_of_files_cluster_i-1));
+end
+
+
+
+
+
 
 
