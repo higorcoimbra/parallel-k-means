@@ -41,21 +41,18 @@ for i = 1:1
     result_column_i = result_grouping(:, i);
     file_ids_of_cluster_i = result_column_i(result_column_i > 0);
     number_of_files_cluster_i = size(file_ids_of_cluster_i, 1);
-    number_of_successfull_superpositions = 0;
     t = cputime;
     for j = 1:(number_of_files_cluster_i-1)
         for k = (j+1):number_of_files_cluster_i
             [~, ~] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k)), ' &']));
-            %match_rms_criteria = str2double(cmdout);
-            %[~, cmdout] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(k)), ' ', int2str(file_ids_of_cluster_i(j))]));
-            %match_rms_criteria_inverted_arguments = str2double(cmdout);
-            %number_of_successfull_superpositions = number_of_successfull_superpositions + (match_rms_criteria > max_rms);
-            %number_of_successfull_superpositions = number_of_successfull_superpositions + (match_rms_criteria_inverted_arguments > max_rms);
         end
     end
     e = cputime-t;
-    %succesfull_rms_rate = number_of_successfull_superpositions/((number_of_files_cluster_i)*(number_of_files_cluster_i-1));
-    %succesfull_rms_rate = number_of_successfull_superpositions/number_of_files_cluster_i;
+    rms_results_cluster_i_fileID = fopen('rms_results_cluster_i', 'r');
+    rms_results_cluster_i = fscanf(rms_results_cluster_i_fileID, '%f');
+    number_of_successfull_superpositions = size(rms_results_cluster_i(rms_results_cluster_i < 0.5), 1);
+    total_number_superpositions = factorial(number_of_files_cluster_i)/(factorial(2)*factorial(number_of_files_cluster_i-2));
+    succesfull_rms_rate = number_of_successfull_superpositions/total_number_superpositions;
 end
 
 
