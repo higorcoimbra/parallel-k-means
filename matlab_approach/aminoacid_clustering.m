@@ -1,15 +1,17 @@
 %constants
 %numeric
 number_of_files = 16383;
-number_of_clusters = 100;
+number_of_clusters = 500;
 data_column_start = 2;
 data_column_finish = 67;
 number_of_atoms = 12;
 max_rms = 0.5;
 number_of_experiments = 1;
+max_iterations_number = 1000;
 %text
 formatted_protein_base_format_spec = '%d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n';
 call_lsqkab_shell_command = "../lsqkab_scripts/get_rms.sh ../lsqkab_scripts/map_file_id_to_file_name ";
+call_empty_rms_file_command="../lsqkab_scripts/empty_rms_file.sh";
 
 %read file
 fileID = fopen('../protein_base/formatted_protein_base.txt', 'r');
@@ -22,7 +24,7 @@ successfull_rms_rate_acc = zeros(number_of_clusters, 1);
 
 for experiment_number = 1:number_of_experiments   
     %execute k-means
-    idx = kmeans(distance_matrix(:, (data_column_start:data_column_finish)), number_of_clusters, 'Start', 'sample');
+    idx = kmeans(distance_matrix(:, (data_column_start:data_column_finish)), number_of_clusters, 'Start', 'sample', 'MaxIter',max_iterations_number);
 
     %create matrix to map each id file to the associated cluster
     map_file_id_to_cluster_id = cat(2, distance_matrix(:,1), idx);
@@ -32,26 +34,30 @@ for experiment_number = 1:number_of_experiments
     for i = 1:number_of_files
         result_grouping(i, map_file_id_to_cluster_id(i,2)) = map_file_id_to_cluster_id(i,1);  
     end
-
-    for i = 1:1
+    t = cputime;
+    for i = 1:number_of_clusters
         result_column_i = result_grouping(:, i);
         file_ids_of_cluster_i = result_column_i(result_column_i > 0);
         number_of_files_cluster_i = size(file_ids_of_cluster_i, 1);
-        t = cputime;
-        for j = 1:(number_of_files_cluster_i-1)
-            for k = (j+1):number_of_files_cluster_i
-                [~, ~] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k)), ' &']));
+        system(call_empty_rms_file_command);
+        if number_of_files_cluster_i > 1
+            for j = 1:(number_of_files_cluster_i-1)
+                for k = (j+1):number_of_files_cluster_i
+                    [~, ~] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k)), ' &']));
+                end
             end
+            rms_results_cluster_i_fileID = fopen('rms_results_cluster_i', 'r');
+            rms_results_cluster_i = fscanf(rms_results_cluster_i_fileID, '%f');
+            number_of_successfull_superpositions = size(rms_results_cluster_i(rms_results_cluster_i < 0.5), 1);
+            total_number_superpositions = factorial(number_of_files_cluster_i)/(factorial(2)*factorial(number_of_files_cluster_i-2));
+            successfull_rms_rate = number_of_successfull_superpositions/total_number_superpositions;
+            fclose(rms_results_cluster_i_fileID);
+        else
+            successfull_rms_rate = 1;
         end
-        e = cputime-t;
-        rms_results_cluster_i_fileID = fopen('rms_results_cluster_i', 'r');
-        rms_results_cluster_i = fscanf(rms_results_cluster_i_fileID, '%f');
-        number_of_successfull_superpositions = size(rms_results_cluster_i(rms_results_cluster_i < 0.5), 1);
-        total_number_superpositions = factorial(number_of_files_cluster_i)/(factorial(2)*factorial(number_of_files_cluster_i-2));
-        successfull_rms_rate = number_of_successfull_superpositions/total_number_superpositions;
-        successfull_rms_rate_acc(i) = successfull_rms_rate;
+        successfull_rms_rate_acc(i) = successfull_rms_rate*100;
     end
-    
+    e = cputime-t;
     for i = 1:10
         cluster_quality_results(i) = size(successfull_rms_rate_acc(successfull_rms_rate_acc > ((i-1)*10) & successfull_rms_rate_acc <= (i*10)), 1);
     end
