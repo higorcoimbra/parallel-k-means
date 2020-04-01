@@ -22,6 +22,10 @@ fclose(fileID);
 cluster_quality_results = zeros(10, 1);
 successfull_rms_rate_acc = zeros(number_of_clusters, 1);
 
+%outliers successfull_rms_rate variables
+number_of_successfull_superpositions_outlier = 0;
+total_number_superpositions_outlier = 0;
+
 for experiment_number = 1:number_of_experiments   
     %execute k-means
     idx = kmeans(distance_matrix(:, (data_column_start:data_column_finish)), number_of_clusters, 'Start', 'sample', 'MaxIter',max_iterations_number);
@@ -34,30 +38,38 @@ for experiment_number = 1:number_of_experiments
     for i = 1:number_of_files
         result_grouping(i, map_file_id_to_cluster_id(i,2)) = map_file_id_to_cluster_id(i,1);  
     end
-    t = cputime;
+    
     for i = 1:number_of_clusters
         result_column_i = result_grouping(:, i);
         file_ids_of_cluster_i = result_column_i(result_column_i > 0);
         number_of_files_cluster_i = size(file_ids_of_cluster_i, 1);
         system(call_empty_rms_file_command);
         if number_of_files_cluster_i > 1
+            if(number_of_files_cluster_i == 2); background_process = ''; else; background_process='&'; end
             for j = 1:(number_of_files_cluster_i-1)
                 for k = (j+1):number_of_files_cluster_i
-                    [~, ~] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k)), ' &']));
+                    [~, ~] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k)), ' ', background_process]));
                 end
             end
             rms_results_cluster_i_fileID = fopen('rms_results_cluster_i', 'r');
             rms_results_cluster_i = fscanf(rms_results_cluster_i_fileID, '%f');
+            
             number_of_successfull_superpositions = size(rms_results_cluster_i(rms_results_cluster_i < 0.5), 1);
             total_number_superpositions = factorial(number_of_files_cluster_i)/(factorial(2)*factorial(number_of_files_cluster_i-2));
+            if number_of_successfull_superpositions/total_number_superpositions > 1
+                number_of_successfull_superpositions_outlier = number_of_successfull_superpositions;
+                total_number_superpositions_outlier = total_number_superpositions;
+                rms_results_cluster_i_outlier = rms_results_cluster_i;
+                cluster_number_outlier = i;
+                number_of_files_cluster_i_outlier = number_of_files_cluster_i;
+            end
             successfull_rms_rate = number_of_successfull_superpositions/total_number_superpositions;
             fclose(rms_results_cluster_i_fileID);
         else
-            successfull_rms_rate = 1;
+            successfull_rms_rate = 0;
         end
         successfull_rms_rate_acc(i) = successfull_rms_rate*100;
     end
-    e = cputime-t;
     for i = 1:10
         cluster_quality_results(i) = size(successfull_rms_rate_acc(successfull_rms_rate_acc > ((i-1)*10) & successfull_rms_rate_acc <= (i*10)), 1);
     end

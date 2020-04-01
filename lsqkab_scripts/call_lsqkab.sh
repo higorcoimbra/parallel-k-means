@@ -5,6 +5,7 @@ export PDB_DATABASE=/home/higor/Documents/CEFET/TCC/parallel-k-means/protein_bas
 export DELTA_FILES_LOCATION=/home/higor/Documents/CEFET/TCC/parallel-k-means/protein_base/delta_files
 source ~/Documents/CCP4/ccp4-7.0/bin/ccp4.setup-sh
 
+
 moved_file=`cat $1 | egrep -e "^\$2 "  | cut -d ' ' -f 2`
 fixed_file=`cat $1 | egrep -e "^\$3 " | cut -d ' ' -f 2`
 
