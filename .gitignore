@@ -46,5 +46,11 @@
 # experiment results folder
 */experiment_results/*
 
+# image_results_folder
+matlab_approach/result_images
+
 # aminoacid database
-*formatted_protein_*
+protein_base/
+
+#ccp4 folder
+ccp4_project/
