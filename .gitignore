@@ -38,3 +38,8 @@
 *.app
 
 # End of https://www.gitignore.io/api/c++
+
+# rms results files
+
+*rms_results_*
+*/experiment_results/*
