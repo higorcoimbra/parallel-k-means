@@ -42,4 +42,9 @@
 # rms results files
 
 *rms_results_*
+
+# experiment results folder
 */experiment_results/*
+
+# aminoacid database
+*formatted_protein_*
