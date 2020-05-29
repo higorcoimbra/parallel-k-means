@@ -21,7 +21,7 @@ rng(c(6));
 distance_matrix = read_distance_file_to_matrix(formatted_protein_base_file_location, formatted_protein_base_format_spec, [data_column_finish, number_of_files]);
 
 for experiment_number = 1:number_of_experiments   
-    [idx, C, sumd, D] = kmeans(distance_matrix(:, (data_column_start:data_column_finish)), number_of_clusters, 'Start', 'plus', 'MaxIter',max_iterations_number, 'EmptyAction', 'error', 'Display', 'final');    
+    [idx, C, sumd, D] = kmeans(distance_matrix(:, (data_column_start:data_column_finish)), number_of_clusters, 'Start', 'plus', 'MaxIter',max_iterations_number, 'EmptyAction', 'error', 'Display', 'final');
 %     fitted_gmm = fit_gmm_to_data(distance_matrix, number_of_clusters);
 %     idx = cluster(fitted_gmm, distance_matrix);
     map_file_id_to_cluster_id = cat(2, distance_matrix(:,1), idx);
@@ -88,4 +88,5 @@ function gmfit = fit_gmm_to_data(distance_matrix, number_of_clusters)
      options = statset('MaxIter',1000, 'Display', 'iter');
      gmfit = fitgmdist(distance_matrix,number_of_clusters,'CovarianceType',covariance_type, 'SharedCovariance',shared_covariance,'Options',options);
 end
+
 
