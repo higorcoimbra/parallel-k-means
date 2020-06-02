@@ -21,7 +21,7 @@ rng(c(6));
 distance_matrix = read_distance_file_to_matrix(formatted_protein_base_file_location, formatted_protein_base_format_spec, [data_column_finish, number_of_files]);
 
 for experiment_number = 1:number_of_experiments   
-    [idx, C, sumd, D] = kmeans(distance_matrix(:, (data_column_start:data_column_finish)), number_of_clusters, 'Start', 'plus', 'MaxIter',max_iterations_number, 'EmptyAction', 'error', 'Display', 'final');
+    [idx, C, sumd, D] = kmeans(distance_matrix(:, (data_column_start:data_column_finish)), number_of_clusters, 'Start', 'plus', 'MaxIter',max_iterations_number, 'EmptyAction', 'singleton', 'Display', 'iter');
 %     fitted_gmm = fit_gmm_to_data(distance_matrix, number_of_clusters);
 %     idx = cluster(fitted_gmm, distance_matrix);
     map_file_id_to_cluster_id = cat(2, distance_matrix(:,1), idx);
@@ -49,14 +49,18 @@ end
 function result_grouping = group_clusters(number_of_files, number_of_clusters, map_file_id_to_cluster_id)
     result_grouping = zeros(number_of_files, number_of_clusters);
     for i = 1:number_of_files
-        result_grouping(i, map_file_id_to_cluster_id(i,2)) = map_file_id_to_cluster_id(i,1);  
+        cluster_id = map_file_id_to_cluster_id(i,2);
+        file_id = map_file_id_to_cluster_id(i,1);
+        result_grouping(i, cluster_id) = file_id;  
     end
 end
 
 function successfull_rms_rate_acc = cluster_lsqkab_superposition(number_of_clusters, result_grouping)
     call_lsqkab_shell_command = "../lsqkab_scripts/get_rms.sh ../lsqkab_scripts/map_file_id_to_file_name ";
     successfull_rms_rate_acc = zeros(number_of_clusters, 1);
+    cluster_metrics = zeros(number_of_clusters, 2);
     for i = 1:number_of_clusters
+        disp(i);
         result_column_i = result_grouping(:, i);
         file_ids_of_cluster_i = result_column_i(result_column_i > 0);
         number_of_files_cluster_i = size(file_ids_of_cluster_i, 1);
@@ -72,7 +76,9 @@ function successfull_rms_rate_acc = cluster_lsqkab_superposition(number_of_clust
             rms_results_cluster_i = fscanf(rms_results_cluster_i_fileID, '%f');
             
             number_of_successfull_superpositions = size(rms_results_cluster_i(rms_results_cluster_i < 0.5), 1);
-            total_number_superpositions = nchoosek(number_of_files_cluster_i, 2);
+            total_number_superpositions = number_of_files_cluster_i * (number_of_files_cluster_i - 1);
+            cluster_metrics(i, 1) = number_of_files_cluster_i;
+            cluster_metrics(i, 2) = number_of_successfull_superpositions;
             successfull_rms_rate = number_of_successfull_superpositions/total_number_superpositions;
             fclose(rms_results_cluster_i_fileID);
         else
