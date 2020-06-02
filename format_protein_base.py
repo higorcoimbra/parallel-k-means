@@ -13,12 +13,13 @@
 
 import re
 import sys
+from math import sqrt
 
 AMONIOACID_PAIR_LEN = 36
 N_COORDINATES = 3
 
 def euclidean_distance(a1, a2):
-	return (a1[0]-a2[0])**2 + (a1[1]-a2[1])**2 + (a1[2]-a2[2])**2
+    return sqrt((a1[0]-a2[0])**2 + (a1[1]-a2[1])**2 + (a1[2]-a2[2])**2)
 
 def set_atoms_distances(atoms_coordinates):
 	atoms_distances = []
@@ -30,11 +31,12 @@ def set_atoms_distances(atoms_coordinates):
 	return atoms_distances
 
 protein_base_file = open('protein_base/protein_base.txt', 'r')
-formatted_protein_base_file = open('protein_base/formatted_protein_base.txt', 'w')
+formatted_protein_base_file = open('protein_base/formatted_protein_bas.txt', 'w')
 formatted_protein_base_content = ''
 
 for aminoacid_pair in protein_base_file:
 	aminoacid_pair_id = re.findall(r'^[0-9]*', aminoacid_pair)[0]
+	print(aminoacid_pair_id)
 	string_coordinates_data = re.findall(r'-*[0-9]+\.[0-9]+', aminoacid_pair)
 	
 	atoms_coordinates = []
