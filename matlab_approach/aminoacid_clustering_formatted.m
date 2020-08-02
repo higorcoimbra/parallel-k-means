@@ -87,7 +87,7 @@ function [successfull_rms_rate_acc, cluster_metrics] = cluster_lsqkab_superposit
         disp('tamanho do cluster:');
         disp(number_of_files_cluster_i);
         if number_of_files_cluster_i > 1
-            if(number_of_files_cluster_i == 2); ; else; background_process='&'; end
+            if(number_of_files_cluster_i == 2); background_process=''; else; background_process='&'; end
             for j = 1:(number_of_files_cluster_i-1)
                 for k = (j+1):number_of_files_cluster_i
                     [~, ~] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k)), ' ', i,' ', background_process]));
