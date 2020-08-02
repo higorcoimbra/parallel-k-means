@@ -14,19 +14,39 @@ base_otaviano_location = '../protein_base/base_otaviano';
 formatted_protein_base_format_spec = '%d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n';
 base_otaviano_format_spec = '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n';
 call_empty_rms_file_command="../lsqkab_scripts/empty_rms_file.sh";
+cluster_distance_metrics_file_path = './experiment_results/gmm/final_results/cdm/cdm_';
 
 distance_matrix = importdata(formatted_protein_base_file_location);
 distance_matrix = distance_matrix(:, 2:67);
 
-%[idx, C, sumd, D] = kmeans(distance_matrix, number_of_clusters, 'MaxIter', 1000, 'Display', 'iter');
-%fitted_gmm = fit_gmm_to_data(distance_matrix, number_of_clusters);
-idx = cluster(fitted_gmm, distance_matrix);
-result_grouping = group_clusters(number_of_files, number_of_clusters, idx);
-mean_distance_to_gmm_centroid = gmm_cluster_distance_to_centroid(fitted_gmm, distance_matrix,result_grouping, 1);
-% system(call_empty_rms_file_command);
-% [successfull_rms_rate_acc, cluster_metrics] = cluster_lsqkab_superposition(number_of_clusters, result_grouping);
-% cluster_quality_results = sum_cluster_quality_results(successfull_rms_rate_acc); 
-% cluster_size_per_successfull_superpositions = sum_cluster_size_per_successfull_superpositions(successfull_rms_rate_acc, cluster_metrics); 
+c = clock;
+rng(c(6));
+fileID = fopen('./experiment_results/gmm/final_results/cqr/cqr_1', 'w');
+
+for i = 1:number_of_experiments
+    cqr_file_id = fopen(join(['./experiment_results/gmm/final_results/cqr/cqr_', int2str(i)]), 'w');
+    csps_file_id = fopen(join(['./experiment_results/gmm/final_results/csps/csps_', int2str(i)]), 'w');
+    idx_file_id = fopen(join(['./experiment_results/gmm/final_results/idx/idx_', int2str(i)]), 'w');
+    
+    [idx, C, sumd, D] = kmeans(distance_matrix, number_of_clusters, 'MaxIter', 1000, 'Display', 'iter');
+    %fitted_gmm = fit_gmm_to_data(distance_matrix, number_of_clusters);
+    %idx = cluster(fitted_gmm, distance_matrix);
+    result_grouping = group_clusters(number_of_files, number_of_clusters, idx);
+    %mean_distance_to_gmm_centroid = gmm_cluster_distance_to_centroid(fitted_gmm, distance_matrix,result_grouping, 1);
+    system(call_empty_rms_file_command);
+    [successfull_rms_rate_acc, cluster_metrics] = cluster_lsqkab_superposition(number_of_clusters, result_grouping);
+    cluster_quality_results = sum_cluster_quality_results(successfull_rms_rate_acc); 
+    cluster_size_per_successfull_superpositions = sum_cluster_size_per_successfull_superpositions(successfull_rms_rate_acc, cluster_metrics);
+    record_cluster_distance_metrics(fitted_gmm, distance_matrix, result_grouping, join([cluster_distance_metrics_file_path, int2str(i)]));
+    
+    fprintf(cqr_file_id, '%d\n', cluster_quality_results);
+    fprintf(csps_file_id, '%d\n', cluster_size_per_successfull_superpositions);
+    fprintf(idx_file_id, '%d\n', idx);
+    
+    fclose(cqr_file_id);
+    fclose(csps_file_id);
+    fclose(idx_file_id);
+end
 
 function cluster_quality_results = sum_cluster_quality_results(successfull_rms_rate_acc)
     cluster_quality_results = zeros(10, 1);
@@ -48,12 +68,6 @@ function cluster_size_per_successfull_superpositions = sum_cluster_size_per_succ
     cluster_size_per_successfull_superpositions(1) = cluster_size_per_successfull_superpositions(1) + sum(cluster_metrics(index_interval_1, 2));
 end
 
-function distance_matrix = read_distance_file_to_matrix(file_location, format_spec, output_size_array)
-    fileID = fopen(file_location, 'r');
-    distance_matrix = fscanf(fileID, format_spec, output_size_array)';
-    fclose(fileID);
-end
-
 function result_grouping = group_clusters(number_of_files, number_of_clusters, idx)
     result_grouping = zeros(number_of_files, number_of_clusters);
     for i = 1:number_of_files
@@ -61,7 +75,7 @@ function result_grouping = group_clusters(number_of_files, number_of_clusters, i
     end
 end
 
-function [successfull_rms_rate_acc, cluster_metrics, file_ids_clusters] = cluster_lsqkab_superposition(number_of_clusters, result_grouping)
+function [successfull_rms_rate_acc, cluster_metrics] = cluster_lsqkab_superposition(number_of_clusters, result_grouping)
     call_lsqkab_shell_command = "../lsqkab_scripts/get_rms.sh ../lsqkab_scripts/map_file_id_to_file_name ";
     successfull_rms_rate_acc = zeros(number_of_clusters, 1);
     cluster_metrics = zeros(number_of_clusters, 4);
@@ -73,7 +87,7 @@ function [successfull_rms_rate_acc, cluster_metrics, file_ids_clusters] = cluste
         disp('tamanho do cluster:');
         disp(number_of_files_cluster_i);
         if number_of_files_cluster_i > 1
-            if(number_of_files_cluster_i == 2); background_process = ''; else; background_process='&'; end
+            if(number_of_files_cluster_i == 2); ; else; background_process='&'; end
             for j = 1:(number_of_files_cluster_i-1)
                 for k = (j+1):number_of_files_cluster_i
                     [~, ~] = system(join([call_lsqkab_shell_command, int2str(file_ids_of_cluster_i(j)), ' ', int2str(file_ids_of_cluster_i(k)), ' ', i,' ', background_process]));
@@ -105,16 +119,29 @@ function gmfit = fit_gmm_to_data(distance_matrix, number_of_clusters)
      gmfit = fitgmdist(distance_matrix,number_of_clusters,'Start','randSample','CovarianceType',covariance_type, 'SharedCovariance',shared_covariance,'Options',options);
 end
 
-function mean_distance_to_gmm_centroid = gmm_cluster_distance_to_centroid(fitted_gmm, distance_matrix,result_grouping, cluster_i)
+function [mean_distance, variance_distance, std_distance] = gmm_cluster_distance_to_centroid(fitted_gmm, distance_matrix,result_grouping, cluster_i)
     result_column_i = result_grouping(:, cluster_i);
     file_ids_of_cluster_i = result_column_i(result_column_i > 0);
-    sum_distance = 0;
     gmm_cluster_centroid = fitted_gmm.mu(cluster_i, :);
+    sum_distance = zeros(size(file_ids_of_cluster_i, 1), 1);
     for i = 1:size(file_ids_of_cluster_i, 1)
         id = file_ids_of_cluster_i(i);
-        sum_distance = sum_distance + sqrt(sum((distance_matrix(id,:) - gmm_cluster_centroid) .^ 2));
+        sum_distance(i) = sqrt(sum((distance_matrix(id,:) - gmm_cluster_centroid) .^ 2));
     end
-    mean_distance_to_gmm_centroid = sum_distance/size(file_ids_of_cluster_i, 1);
+    if(size(sum_distance, 1) == 0)
+        sum_distance = 0;
+    end
+    mean_distance = mean(sum_distance);
+    variance_distance = var(sum_distance);
+    std_distance = std(sum_distance);
 end
 
+function record_cluster_distance_metrics(fitted_gmm, distance_matrix, result_grouping, cluster_distance_metrics_path)
+    fileID = fopen(cluster_distance_metrics_path, 'w');
+    for i = 1:size(result_grouping, 2)
+        [mean_distance, variance_distance, std_distance] = gmm_cluster_distance_to_centroid(fitted_gmm, distance_matrix,result_grouping, i);
+        fprintf(fileID, "%d %f %f %f\n",i, mean_distance, variance_distance, std_distance); 
+    end
+    fclose(fileID);
+end
 
