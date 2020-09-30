@@ -43,9 +43,6 @@
 
 *rms_results_*
 
-# experiment results folder
-*/experiment_results/*
-
 # image_results_folder
 matlab_approach/result_images
 
