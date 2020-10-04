@@ -8,24 +8,14 @@ kmeansClusterMetrics = retrieveClusterMetricsMatrix(bestKmeansOverallPerformance
 kmeansDistanceStatistics = retrieveDistanceStatisticsMatrix(bestKmeansOverallPerformanceExecution, KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX);
 
 gmmClusterMetrics = retrieveClusterMetricsMatrix(bestGmmOverallPerformanceExecution, GMM_BASE_PATH, NUMBER_CLUSTERS_STR, CLUSTER_METRICS_FOLDER, CLUSTER_METRICS_FILE_PREFIX);
-gmmClusterMetrics = sanitizeGmm500ClusterMetrics(gmmClusterMetrics);
 gmmDistanceStatistics = retrieveDistanceStatisticsMatrix(bestGmmOverallPerformanceExecution, GMM_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX);
+if NUMBER_CLUSTERS_STR = '500'
+    gmmClusterMetrics = sanitizeGmm500ClusterMetrics(gmmClusterMetrics);
+end
 
 constructAndPlotDistanceStatisticsChart(kmeansClusterMetrics, kmeansDistanceStatistics, DISTANCE_MEAN_COLUMN, CHART_CONFIG_DISTANCE_MEAN_STRUCT);
 hold on;
 constructAndPlotDistanceStatisticsChart(gmmClusterMetrics, gmmDistanceStatistics, DISTANCE_MEAN_COLUMN, CHART_CONFIG_DISTANCE_MEAN_STRUCT);
-
-figure;
-
-constructAndPlotDistanceStatisticsChart(kmeansClusterMetrics, kmeansDistanceStatistics, DISTANCE_VARIANCE_COLUMN, CHART_CONFIG_DISTANCE_VARIANCE_STRUCT);
-hold on;
-constructAndPlotDistanceStatisticsChart(gmmClusterMetrics, gmmDistanceStatistics, DISTANCE_VARIANCE_COLUMN, CHART_CONFIG_DISTANCE_VARIANCE_STRUCT);
-
-figure;
-
-constructAndPlotDistanceStatisticsChart(kmeansClusterMetrics, kmeansDistanceStatistics, DISTANCE_STD_DEVIATON_COLUMN, CHART_CONFIG_DISTANCE_STD_DEVIATION_STRUCT);
-hold on;
-constructAndPlotDistanceStatisticsChart(gmmClusterMetrics, gmmDistanceStatistics, DISTANCE_STD_DEVIATON_COLUMN, CHART_CONFIG_DISTANCE_STD_DEVIATION_STRUCT);
 
 function distanceStatistics = retrieveDistanceStatisticsMatrix(bestOverallPerformanceExecution, KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX)
     distanceStatisticsFilePath = join([KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX, int2str(bestOverallPerformanceExecution)]);
@@ -41,8 +31,5 @@ function sanitizedClusterMetrics = sanitizeGmm500ClusterMetrics(unsanitizedClust
     uniqueElementClustersIndex = unsanitizedClusterMetrics(unsanitizedClusterMetrics(:, 2) == 1);
     unsanitizedClusterMetrics(uniqueElementClustersIndex, 3) = 0;
     unsanitizedClusterMetrics(uniqueElementClustersIndex, 4) = 0;
-    emptyClustersIndex = unsanitizedClusterMetrics(unsanitizedClusterMetrics(:, 2) == 0);
-    unsanitizedClusterMetrics(emptyClustersIndex , 3) = 0;
-    unsanitizedClusterMetrics(emptyClustersIndex , 4) = 0;
     sanitizedClusterMetrics = unsanitizedClusterMetrics; 
 end

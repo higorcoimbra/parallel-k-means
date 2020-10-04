@@ -7,7 +7,8 @@ function bestOverallPerformanceExecutionNumber = calculateBestOverallPerformance
     for execution = 1:numberExecutions
         clusterMetricsExecutionFilePath = join([clusterMetricsBaseFilePath, int2str(execution)]);
         clusterMetricsOfExecution = importdata(clusterMetricsExecutionFilePath);
-        if isequal(analysisClusteringAlgorithm, '../gmm_')
+        gmmBasePath = '../gmm_';
+        if analysisClusteringAlgorithm == gmmBasePath
             clusterMetricsOfExecution = sanitizeGmm500ClusterMetrics(clusterMetricsOfExecution);
         end
         
@@ -31,9 +32,6 @@ function bestOverallPerformanceExecutionNumber = calculateBestOverallPerformance
         uniqueElementClustersIndex = unsanitizedClusterMetrics(unsanitizedClusterMetrics(:, 2) == 1);
         unsanitizedClusterMetrics(uniqueElementClustersIndex, 3) = 0;
         unsanitizedClusterMetrics(uniqueElementClustersIndex, 4) = 0;
-        emptyClustersIndex = unsanitizedClusterMetrics(unsanitizedClusterMetrics(:, 2) == 0);
-        unsanitizedClusterMetrics(emptyClustersIndex , 3) = 0;
-        unsanitizedClusterMetrics(emptyClustersIndex , 4) = 0;
         sanitizedClusterMetrics = unsanitizedClusterMetrics; 
     end
 end

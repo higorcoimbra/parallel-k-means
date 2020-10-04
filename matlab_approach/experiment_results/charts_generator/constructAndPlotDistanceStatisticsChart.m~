@@ -18,13 +18,9 @@ function constructAndPlotDistanceStatisticsChart(clusterMetrics, distanceStatist
 
     plot(sortedDistanceChartData(:, X_AXIS_COLUMN), sortedDistanceChartData(:, Y_AXIS_COLUMN));
     hold on;
-    constructAndPlotLinearRegression();
+    p = polyfit(sortedDistanceChartData(:, X_AXIS_COLUMN),sortedDistanceChartData(:, Y_AXIS_COLUMN),1);
+    y = polyval(p, sortedDistanceChartData(:, X_AXIS_COLUMN));
+    plot(sortedDistanceChartData(:, X_AXIS_COLUMN), sortedDistanceChartData(:, Y_AXIS_COLUMN));
     xlabel(chartConfiguration.xLabel);
     ylabel(chartConfiguration.yLabel);
-    
-    function constructAndPlotLinearRegression()
-        linearRegression = polyfit(sortedDistanceChartData(:, X_AXIS_COLUMN),sortedDistanceChartData(:, Y_AXIS_COLUMN),1);
-        evaluatedXAxisValuesOverLinearRegressionResult = polyval(linearRegression, sortedDistanceChartData(:, X_AXIS_COLUMN));
-        plot(sortedDistanceChartData(:, X_AXIS_COLUMN), evaluatedXAxisValuesOverLinearRegressionResult);
-    end
 end
