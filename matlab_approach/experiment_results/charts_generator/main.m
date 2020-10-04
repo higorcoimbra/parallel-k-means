@@ -11,9 +11,13 @@ gmmClusterMetrics = retrieveClusterMetricsMatrix(bestGmmOverallPerformanceExecut
 gmmClusterMetrics = sanitizeGmm500ClusterMetrics(gmmClusterMetrics);
 gmmDistanceStatistics = retrieveDistanceStatisticsMatrix(bestGmmOverallPerformanceExecution, GMM_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX);
 
-constructAndPlotDistanceStatisticsChart(kmeansClusterMetrics, kmeansDistanceStatistics, DISTANCE_MEAN_COLUMN, CHART_CONFIG_DISTANCE_MEAN_STRUCT);
+sortedDistanceChartData = constructAndPlotDistanceStatisticsChart(kmeansClusterMetrics, kmeansDistanceStatistics, DISTANCE_MEAN_COLUMN, CHART_CONFIG_DISTANCE_MEAN_STRUCT);
 hold on;
-constructAndPlotDistanceStatisticsChart(gmmClusterMetrics, gmmDistanceStatistics, DISTANCE_MEAN_COLUMN, CHART_CONFIG_DISTANCE_MEAN_STRUCT);
+constructAndPlotLinearRegression(sortedDistanceChartData);
+hold on;
+sortedDistanceChartData = constructAndPlotDistanceStatisticsChart(gmmClusterMetrics, gmmDistanceStatistics, DISTANCE_MEAN_COLUMN, CHART_CONFIG_DISTANCE_MEAN_STRUCT);
+hold on;
+constructAndPlotLinearRegression(sortedDistanceChartData);
 
 figure;
 

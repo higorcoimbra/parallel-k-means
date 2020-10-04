@@ -1,4 +1,4 @@
-function constructAndPlotDistanceStatisticsChart(clusterMetrics, distanceStatistics, statisticPropertyColumn, chartConfiguration)
+function sortedDistanceChartData = constructAndPlotDistanceStatisticsChart(clusterMetrics, distanceStatistics, statisticPropertyColumn, chartConfiguration)
     
     TOTAL_SUPERPOSITIONS_COLUMN = 3;
     SUCCESSFULL_SUPERPOSITIONS_NUMBER = 4;
@@ -17,14 +17,6 @@ function constructAndPlotDistanceStatisticsChart(clusterMetrics, distanceStatist
     sortedDistanceChartData = distanceChartData(idxSortedByClusterPerformance, :);
 
     plot(sortedDistanceChartData(:, X_AXIS_COLUMN), sortedDistanceChartData(:, Y_AXIS_COLUMN));
-    hold on;
-    constructAndPlotLinearRegression();
     xlabel(chartConfiguration.xLabel);
     ylabel(chartConfiguration.yLabel);
-    
-    function constructAndPlotLinearRegression()
-        linearRegression = polyfit(sortedDistanceChartData(:, X_AXIS_COLUMN),sortedDistanceChartData(:, Y_AXIS_COLUMN),1);
-        evaluatedXAxisValuesOverLinearRegressionResult = polyval(linearRegression, sortedDistanceChartData(:, X_AXIS_COLUMN));
-        plot(sortedDistanceChartData(:, X_AXIS_COLUMN), evaluatedXAxisValuesOverLinearRegressionResult);
-    end
 end
