@@ -12,32 +12,41 @@ max_iterations_number = 1000;
 formatted_protein_base_file_location = '../protein_base/formatted_protein_base.txt';
 formatted_protein_base_format_spec = '%d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n';
 call_empty_rms_file_command="../lsqkab_scripts/empty_rms_file.sh";
-cluster_distance_metrics_file_path = './experiment_results/gmm_500/cdm/cdm_';
-cluster_metrics_file_path = './experiment_results/gmm_500/cluster_metrics/cm_';
+cluster_distance_metrics_file_path = './experiment_results/kmeans_750/cdm/cdm_';
+cluster_metrics_file_path = './experiment_results/kmeans_750/cluster_metrics/cm_';
 
 
 for experiment = 1:30
     
     distance_matrix = importdata(formatted_protein_base_file_location);
     distance_matrix = distance_matrix(:, 2:67);
+    
     disp('EXPERIMENTO:');
     disp(experiment);
-    cqr_file_id = fopen(join(['./experiment_results/gmm_500/cqr/cqr_', int2str(experiment)]), 'w');
-    csps_file_id = fopen(join(['./experiment_results/gmm_500/csps/csps_', int2str(experiment)]), 'w');
-    idx_file_id = fopen(join(['./experiment_results/gmm_500/idx/idx_', int2str(experiment)]), 'w');
+    
+    cqr_file_id = fopen(join(['./experiment_results/kmeans_750/cqr/cqr_', int2str(experiment)]), 'w');
+    csps_file_id = fopen(join(['./experiment_results/kmeans_750/csps/csps_', int2str(experiment)]), 'w');
+    idx_file_id = fopen(join(['./experiment_results/kmeans_750/idx/idx_', int2str(experiment)]), 'w');
+    
     c = clock;
     rng(c(6));
     
-    number_of_clusters = 500;
+    number_of_clusters = 750;
+    
     %[idx, C, sumd, D] = kmeans(distance_matrix, number_of_clusters, 'MaxIter', 1000, 'Display', 'iter');    
-    fitted_gmm = fit_gmm_to_data(distance_matrix, number_of_clusters);
-    idx = cluster(fitted_gmm, distance_matrix);
+    idx = importdata(join(['kmeans_ext_results/idx/',int2str(number_of_clusters), '/idx_', int2str(experiment)]));
+    C = importdata(join(['kmeans_ext_results/C/',int2str(number_of_clusters), '/C_', int2str(experiment)]));
+    %fitted_gmm = fit_gmm_to_data(distance_matrix, number_of_clusters);
+    %idx = cluster(fitted_gmm, distance_matrix);
+    
     result_grouping = group_clusters(number_of_files, number_of_clusters, idx);
+    record_distance_statistics_kmeans(C, distance_matrix, result_grouping, join([cluster_distance_metrics_file_path, int2str(experiment)]));
+    %record_cluster_distance_metrics(fitted_gmm, distance_matrix, result_grouping, join([cluster_distance_metrics_file_path, int2str(experiment)]));
     system(call_empty_rms_file_command);
     [successfull_rms_rate_acc, cluster_metrics] = cluster_lsqkab_superposition(number_of_clusters, result_grouping, join([cluster_metrics_file_path, int2str(experiment)]));
     cluster_quality_results = sum_cluster_quality_results(successfull_rms_rate_acc); 
     cluster_size_per_successfull_superpositions = sum_cluster_size_per_successfull_superpositions(successfull_rms_rate_acc, cluster_metrics);
-    record_cluster_distance_metrics(fitted_gmm, distance_matrix, result_grouping, join([cluster_distance_metrics_file_path, int2str(experiment)]));
+    
     
     fprintf(cqr_file_id, '%d\n', cluster_quality_results);
     fprintf(csps_file_id, '%d\n', cluster_size_per_successfull_superpositions);
@@ -104,10 +113,11 @@ function [successfull_rms_rate_acc, cluster_metrics] = cluster_lsqkab_superposit
             cluster_metrics(i, 3) = total_number_superpositions;
             cluster_metrics(i, 4) = number_of_successfull_superpositions;
             successfull_rms_rate = number_of_successfull_superpositions/total_number_superpositions;
+            fprintf(cluster_metrics_file_id, '%d %d %d %d\n', i, number_of_files_cluster_i, total_number_superpositions, number_of_successfull_superpositions);
         else
             successfull_rms_rate = 0;
+            fprintf(cluster_metrics_file_id, '%d %d %d %d\n', i, number_of_files_cluster_i, 0, 0);
         end
-        fprintf(cluster_metrics_file_id, '%d %d %d %d\n', i, number_of_files_cluster_i, total_number_superpositions, number_of_successfull_superpositions);
         successfull_rms_rate_acc(i) = round(successfull_rms_rate*100);
     end
     fclose(cluster_metrics_file_id);
@@ -146,37 +156,36 @@ function record_cluster_distance_metrics(fitted_gmm, distance_matrix, result_gro
     fclose(fileID);
 end
 
-function record_cluster_distance_metrics_kmeans()
+function record_distance_statistics_kmeans(C, distance_matrix, result_grouping, cluster_distance_metrics_path)
     fileID = fopen(cluster_distance_metrics_path, 'w');
-    %D -Distances from each point to every centroid, returned as a numeric matrix. 
-    %D is an n-by-k matrix, where element (j,m) is the distance from observation j to centroid m.
-    
-    %TODO: para cada execução, para cada cluster, resgatar a informação da
-    %média, desvio padrão e variância da distância de cada ponto no cluster
-    %para seu centroide
-    
-    para cada cluster i faça:
-        els = obter assinaturas do cluster i
-        sum_dist_i = []
-        para cada el em els:
-            dist_el_i = D(el, i);
-            sum_dist_i = sum_dist_i ++ dist_el_i
-        sum_dist_i = D(els, i);
-        mean(sum_dist_i)
-        var(sum_dist_i)
-        std(sum_dist_i)
-    
+    amount_clusters = size(result_grouping, 2);
+    for i = 1:amount_clusters
+        [mean_distance, variance_distance, std_distance] = kmeans_distance_statistics_to_centroid(C, distance_matrix,result_grouping, i);
+        fprintf(fileID, "%d %f %f %f\n",i, mean_distance, variance_distance, std_distance); 
+    end
+    fclose(fileID);
 end
 
 
-function [mean_distance, variance_distance, std_distance] = kmeans_cluster_distance_to_centroid(cluster_distance_metrics_path, result_grouping, cluster_i)
+function [mean_distance, variance_distance, std_distance] = kmeans_distance_statistics_to_centroid(C, distance_matrix, result_grouping, cluster_i)
     result_column_i = result_grouping(:, cluster_i);
     file_ids_of_cluster_i = result_column_i(result_column_i > 0);
+    amount_file_ids = size(file_ids_of_cluster_i, 1);
     
-    sum_dist_i = D(file_ids_of_cluster_i, cluster_i);
+    cluster_i_centroid = C(cluster_i,:);
+    individual_distance = zeros(amount_file_ids, 1);
+    for i = 1:amount_file_ids
+        id = file_ids_of_cluster_i(i);
+        individual_distance(i) = sqrt(sum((distance_matrix(id,:) - cluster_i_centroid) .^ 2));
+    end
     
-    mean_distance = mean(sum_dist_i);
-    variance_distance = var(sum_dist_i);
-    std_distance = std(sum_dist_i);
+    empty_cluster = size(individual_distance, 1) == 0;
+    if(empty_cluster)
+        individual_distance = 0;
+    end
+    
+    mean_distance = mean(individual_distance);
+    variance_distance = var(individual_distance);
+    std_distance = std(individual_distance);
 end
 
