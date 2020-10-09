@@ -8,53 +8,30 @@
 
 importCommonConstants;
 
-allExecutionsClusterPerformanceDistanceStatisticsKmeans = generateClusterPerformanceDistanceStatisticsMatrix(KMEANS_BASE_PATH);
-uniquePerformanceValuesKmeans = unique(allExecutionsClusterPerformanceDistanceStatisticsKmeans(:, 1));
-meanExecutionChartsDataKmeans = generateMeanExecutionChartsData(allExecutionsClusterPerformanceDistanceStatisticsKmeans, uniquePerformanceValuesKmeans);
+allExecutionsClusterPerformanceDistanceStatistics = generateClusterPerformanceDistanceStatisticsMatrix();
+uniquePerformanceValues = unique(allExecutionsClusterPerformanceDistanceStatistics(:, 1));
 
-allExecutionsClusterPerformanceDistanceStatisticsGmm = generateClusterPerformanceDistanceStatisticsMatrix(GMM_BASE_PATH);
-uniquePerformanceValuesGmm = unique(allExecutionsClusterPerformanceDistanceStatisticsGmm(:, 1));
-meanExecutionChartsDataGmm = generateMeanExecutionChartsData(allExecutionsClusterPerformanceDistanceStatisticsGmm, uniquePerformanceValuesGmm);
-
-%distance mean
-plot(meanExecutionChartsDataKmeans(:, 1), meanExecutionChartsDataKmeans(:, 2));
-hold on 
-plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 2));
-
-figure;
-
-%distance variance
-plot(meanExecutionChartsDataKmeans(:, 1), meanExecutionChartsDataKmeans(:, 3));
-hold on 
-plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 3));
-
-figure;
-
-%distance standard deviation
-plot(meanExecutionChartsDataKmeans(:, 1), meanExecutionChartsDataKmeans(:, 4));
-hold on 
-plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 4));
-
-function meanExecutionChartsData = generateMeanExecutionChartsData(allExecutionsClusterPerformanceDistanceStatistics, uniquePerformanceValues)
+function meanExecutionChartsData = generateMeanExecutionChartsData()
     meanExecutionChartsData = [];
     for i = 1:size(uniquePerformanceValues, 1)
         performanceValueIndexes = find(allExecutionsClusterPerformanceDistanceStatistics(:, 1) == uniquePerformanceValues(i));
-        distanceStatistics = allExecutionsClusterPerformanceDistanceStatistics(performanceValueIndexes, 2:4);
-        if size(distanceStatistics, 1) > 1
-            distanceStatistics = mean(distanceStatistics);
+        indexesDistanceStatistics = allExecutionsClusterPerformanceDistanceStatistics(performanceValueIndexes, 2:4);
+        indexesPerformance = allExecutionsClusterPerformanceDistanceStatistics(performanceValueIndexes, 1);
+        if size(indexesDistanceStatistics, 1) > 1
+            indexesDistanceStatistics = mean(indexesDistanceStatistics);
         end
-        meanExecutionChartsData = cat(1, meanExecutionChartsData, [uniquePerformanceValues(i) distanceStatistics]);
+        meanExecutionChartsData = cat(1, meanExecutionChartsData, [uniquePerformanceValues(i) indexesDistanceStatistics]);
     end
 end
 
-function [allExecutionsClusterPerformanceDistanceStatistics] = generateClusterPerformanceDistanceStatisticsMatrix(algorithmBasePath)    
+function [allExecutionsClusterPerformanceDistanceStatistics] = generateClusterPerformanceDistanceStatisticsMatrix()    
     importCommonConstants; 
     TOTAL_SUPERPOSITIONS_COLUMN = 3;
     SUCCESSFULL_SUPERPOSITIONS_NUMBER = 4;
     allExecutionsClusterPerformanceDistanceStatistics = [];
     for execution = 1:NUMBER_EXECUTIONS
-        clusterMetrics = retrieveClusterMetricsMatrix(execution, algorithmBasePath, NUMBER_CLUSTERS_STR, CLUSTER_METRICS_FOLDER, CLUSTER_METRICS_FILE_PREFIX);
-        distanceStatistics = retrieveDistanceStatisticsMatrix(execution, algorithmBasePath, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX);
+        clusterMetrics = retrieveClusterMetricsMatrix(execution, KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, CLUSTER_METRICS_FOLDER, CLUSTER_METRICS_FILE_PREFIX);
+        distanceStatistics = retrieveDistanceStatisticsMatrix(execution, KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX);
         executionPerformance = clusterMetrics(:, SUCCESSFULL_SUPERPOSITIONS_NUMBER)./clusterMetrics(:, TOTAL_SUPERPOSITIONS_COLUMN);
         executionPerformance(isnan(executionPerformance)) = 0;
         executionClusterPerformanceDistanceStatistics = [executionPerformance distanceStatistics(:, 2:4)];
