@@ -19,21 +19,35 @@ meanExecutionChartsDataGmm = generateMeanExecutionChartsData(allExecutionsCluste
 %distance mean
 plot(meanExecutionChartsDataKmeans(:, 1), meanExecutionChartsDataKmeans(:, 2));
 hold on 
-plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 2));
-
+plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 2), 'Color', [1, 0, 0, 0.2]);
+hold on;
+constructAndPlotLinearRegression(meanExecutionChartsDataKmeans);
+hold on;
+constructAndPlotLinearRegression(meanExecutionChartsDataGmm);
+xlabel('Porcentagem de sobreposições satisfatórias');
+ylabel('Média da distância dos elementos do cluster ao centróide');
+title('Relação entre porcentagem de sobreposições satisfatórias e média da distância dos elementos ao centróide - 500 clusters');
+legend('K-Means', 'MMG + EM');
 figure;
 
-%distance variance
+% %distance variance
 plot(meanExecutionChartsDataKmeans(:, 1), meanExecutionChartsDataKmeans(:, 3));
 hold on 
-plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 3));
-
+plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 3), 'Color', [1, 0, 0, 0.2]);
+xlabel('Porcentagem de sobreposições satisfatórias');
+ylabel('Variância da distância dos elementos do cluster ao centróide');
+title('Relação entre porcentagem de sobreposições satisfatórias e variância da distância dos elementos ao centróide - 500 clusters');
+legend('K-Means', 'MMG + EM');
 figure;
 
 %distance standard deviation
 plot(meanExecutionChartsDataKmeans(:, 1), meanExecutionChartsDataKmeans(:, 4));
 hold on 
-plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 4));
+plot(meanExecutionChartsDataGmm(:, 1), meanExecutionChartsDataGmm(:, 4), 'Color', [1, 0, 0, 0.2]);
+xlabel('Porcentagem de sobreposições satisfatórias');
+ylabel('Desvio padrão da distância dos elementos do cluster ao centróide');
+title('Relação entre porcentagem de sobreposições satisfatórias e desvio padrão da distância dos elementos ao centróide - 500 clusters');
+legend('K-Means', 'MMG + EM');
 
 function meanExecutionChartsData = generateMeanExecutionChartsData(allExecutionsClusterPerformanceDistanceStatistics, uniquePerformanceValues)
     meanExecutionChartsData = [];
@@ -61,7 +75,7 @@ function [allExecutionsClusterPerformanceDistanceStatistics] = generateClusterPe
         allExecutionsClusterPerformanceDistanceStatistics = cat(1, allExecutionsClusterPerformanceDistanceStatistics, executionClusterPerformanceDistanceStatistics);
     end
 end
-
+%0.5331, 0.5584; 0.5957, 0.5963
 function clusterMetrics = retrieveClusterMetricsMatrix(execution, KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, CLUSTER_METRICS_FOLDER, CLUSTER_METRICS_FILE_PREFIX)
     clusterMetricsFilePath = join([KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, CLUSTER_METRICS_FOLDER, CLUSTER_METRICS_FILE_PREFIX, int2str(execution)]);
     clusterMetrics = importdata(clusterMetricsFilePath);
@@ -70,9 +84,4 @@ end
 function distanceStatistics = retrieveDistanceStatisticsMatrix(execution, KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX)
     distanceStatisticsFilePath = join([KMEANS_BASE_PATH, NUMBER_CLUSTERS_STR, DISTANCE_STATISTICS_FOLDER, DISTANCE_STATISTICS_FILE_PREFIX, int2str(execution)]);
     distanceStatistics = importdata(distanceStatisticsFilePath);
-end
-
-
-
-function [performanceDistanceStatisticsMatrix] = generatePerformanceDistanceStatisticsMatrix
 end
