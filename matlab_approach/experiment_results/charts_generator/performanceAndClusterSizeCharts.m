@@ -19,6 +19,12 @@ plotComparison(kmeansCqrMean, gmmCqrMean, config);
 
 kmeansCspsMean = calculateMeanCspsAllExecutions(KMEANS_BASE_PATH);
 gmmCspsMean = calculateMeanCspsAllExecutions(GMM_BASE_PATH);
+roundedKmeansCsps = round(kmeansCspsMean, 2);
+roundedGmmCsps = round(gmmCspsMean, 2);
+percentageCspsDifferenceRelativeToGmm = (roundedKmeansCsps - roundedGmmCsps)./roundedGmmCsps;
+percentageCspsDifferenceRelativeToKmeans = (roundedGmmCsps - roundedKmeansCsps)./roundedKmeansCsps;
+percentageCspsDifferencesConcat = cat(1, percentageCspsDifferenceRelativeToGmm, percentageCspsDifferenceRelativeToKmeans);
+percentageCspsDifferences = round(percentageCspsDifferencesConcat(percentageCspsDifferencesConcat > 0)*100, 2);
 config.xlabel = 'Porcentagem de sobreposições satisfatórias (Faixas de 10%)';
 config.ylabel = 'Quantidade de registros';
 config.title = 'Relação entre sobreposições satisfatórias e quantidade de registros nos clusters - 500 clusters';
